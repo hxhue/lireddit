@@ -1,0 +1,13 @@
+fragment PostNoText on Post {
+  id
+  updatedAt
+  createdAt
+  creatorId
+  title
+  points
+  creator {
+    id
+    username
+  }
+  myvote
+}
