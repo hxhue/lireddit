@@ -40,7 +40,7 @@ const main = async () => {
         "https://studio.apollographql.com",
         "http://localhost:3000",
         "http://127.0.0.1:3000",
-        "http://localhost:3000",
+        "http://[::1]:3000",
       ],
       credentials: true,
     })
@@ -90,9 +90,13 @@ const main = async () => {
   apolloServer.applyMiddleware({ app, cors: false });
 
   const port = 4000;
-  const hostname = "localhost"; // Default "::".
+  const hostname = "0.0.0.0"; // The default is "::", IP v4.
   app.listen(port, hostname, () => {
-    console.log(`Server started on http://${hostname}:${port}`);
+    console.log(
+      `Server started on http://${
+        hostname.includes("::") ? `[${hostname}]` : hostname
+      }:${port}`
+    );
   });
 
   // Fix WSL 2 slow localhost network on firefox

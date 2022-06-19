@@ -21,3 +21,4 @@ function MyApp({ Component, pageProps }: AppProps) {
 // Otherwise urql cache is rediculously not working.
 // export default MyApp;
 export default withUrqlClient(createUrqlClient, { ssr: true })(MyApp);
+// export default MyApp;

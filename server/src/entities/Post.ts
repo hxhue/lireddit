@@ -17,7 +17,7 @@ import { User } from "./User";
 export class Post extends BaseEntity {
   @Field()
   @PrimaryGeneratedColumn()
-  id!: number;
+  id: number;
 
   @Field(() => String)
   @CreateDateColumn({ type: "timestamptz" })
@@ -27,29 +27,28 @@ export class Post extends BaseEntity {
   @Column()
   creatorId: number; // Foreign key
 
-  // Not stored but transferred
-  @Field()
-  @ManyToOne(() => User, (user) => user.posts)
-  creator: User;
-
   @Field(() => String)
   @UpdateDateColumn({ type: "timestamptz" })
   updatedAt: Date;
 
   @Field()
   @Column()
-  title!: string;
+  title: string;
 
   @Field()
   @Column()
-  text!: string;
+  text: string;
 
   @Field()
   @Column({ type: "int", default: 0 })
-  points!: number;
+  points: number;
+
+  @Field(() => User, { nullable: true })
+  @ManyToOne(() => User, (user) => user.posts)
+  creator?: User;
 
   @OneToMany(() => Updoot, (updoot) => updoot.post)
-  updoots: Updoot[];
+  updoots?: Updoot[];
 
   // Not in database. But can be transferred by GraphQL.
   // Current (session-related) user's vote. Can be 0 |-1 | 1. But number is weaker constraint.

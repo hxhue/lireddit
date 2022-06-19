@@ -68,7 +68,8 @@ export type MutationRegisterArgs = {
 
 
 export type MutationUpdatePostArgs = {
-  id: Scalars['Float'];
+  id: Scalars['Int'];
+  text?: InputMaybe<Scalars['String']>;
   title?: InputMaybe<Scalars['String']>;
 };
 
@@ -87,7 +88,7 @@ export type PaginatedPosts = {
 export type Post = {
   __typename?: 'Post';
   createdAt: Scalars['String'];
-  creator: User;
+  creator?: Maybe<User>;
   creatorId: Scalars['Float'];
   id: Scalars['Float'];
   myvote?: Maybe<Scalars['Int']>;
@@ -143,7 +144,7 @@ export type UsernamePasswordInput = {
   username: Scalars['String'];
 };
 
-export type PostNoTextFragment = { __typename?: 'Post', id: number, updatedAt: string, createdAt: string, creatorId: number, title: string, points: number, myvote?: number | null, creator: { __typename?: 'User', id: number, username: string } };
+export type PostNoTextFragment = { __typename?: 'Post', id: number, updatedAt: string, createdAt: string, creatorId: number, title: string, points: number, myvote?: number | null, creator?: { __typename?: 'User', id: number, username: string } | null };
 
 export type UserBasicFragment = { __typename?: 'User', id: number, username: string, email: string };
 
@@ -196,6 +197,15 @@ export type RegisterMutationVariables = Exact<{
 
 export type RegisterMutation = { __typename?: 'Mutation', register: { __typename?: 'UserResponse', errors?: Array<{ __typename?: 'FieldError', field: string, message: string }> | null, user?: { __typename?: 'User', id: number, username: string, email: string } | null } };
 
+export type UpdatePostMutationVariables = Exact<{
+  id: Scalars['Int'];
+  title: Scalars['String'];
+  text: Scalars['String'];
+}>;
+
+
+export type UpdatePostMutation = { __typename?: 'Mutation', updatePost?: { __typename?: 'Post', id: number, title: string, text: string } | null };
+
 export type VoteMutationVariables = Exact<{
   value: Scalars['Int'];
   postId: Scalars['Int'];
@@ -214,7 +224,7 @@ export type PostQueryVariables = Exact<{
 }>;
 
 
-export type PostQuery = { __typename?: 'Query', post?: { __typename?: 'Post', text: string, id: number, updatedAt: string, createdAt: string, creatorId: number, title: string, points: number, myvote?: number | null, creator: { __typename?: 'User', id: number, username: string } } | null };
+export type PostQuery = { __typename?: 'Query', post?: { __typename?: 'Post', text: string, id: number, updatedAt: string, createdAt: string, creatorId: number, title: string, points: number, myvote?: number | null, creator?: { __typename?: 'User', id: number, username: string } | null } | null };
 
 export type PostsQueryVariables = Exact<{
   limit: Scalars['Int'];
@@ -222,7 +232,7 @@ export type PostsQueryVariables = Exact<{
 }>;
 
 
-export type PostsQuery = { __typename?: 'Query', posts: { __typename?: 'PaginatedPosts', hasMore: boolean, posts: Array<{ __typename?: 'Post', textSnippet: string, id: number, updatedAt: string, createdAt: string, creatorId: number, title: string, points: number, myvote?: number | null, creator: { __typename?: 'User', id: number, username: string } }> } };
+export type PostsQuery = { __typename?: 'Query', posts: { __typename?: 'PaginatedPosts', hasMore: boolean, posts: Array<{ __typename?: 'Post', textSnippet: string, id: number, updatedAt: string, createdAt: string, creatorId: number, title: string, points: number, myvote?: number | null, creator?: { __typename?: 'User', id: number, username: string } | null }> } };
 
 export const PostNoTextFragmentDoc = gql`
     fragment PostNoText on Post {
@@ -340,6 +350,19 @@ export const RegisterDocument = gql`
 
 export function useRegisterMutation() {
   return Urql.useMutation<RegisterMutation, RegisterMutationVariables>(RegisterDocument);
+};
+export const UpdatePostDocument = gql`
+    mutation UpdatePost($id: Int!, $title: String!, $text: String!) {
+  updatePost(id: $id, title: $title, text: $text) {
+    id
+    title
+    text
+  }
+}
+    `;
+
+export function useUpdatePostMutation() {
+  return Urql.useMutation<UpdatePostMutation, UpdatePostMutationVariables>(UpdatePostDocument);
 };
 export const VoteDocument = gql`
     mutation Vote($value: Int!, $postId: Int!) {

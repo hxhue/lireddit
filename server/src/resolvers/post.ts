@@ -128,7 +128,10 @@ export class PostResolver {
 
   @FieldResolver(() => String)
   textSnippet(@Root() root: Post) {
-    return root.text.slice(0, 120);
+    const SLICE_LIMIT = 50;
+    return root.text.length > SLICE_LIMIT
+      ? root.text.slice(0, SLICE_LIMIT) + "..."
+      : root.text;
   }
 
   @Query(() => Post, { nullable: true })
@@ -146,20 +149,28 @@ export class PostResolver {
   }
 
   @Mutation(() => Post, { nullable: true })
+  @UseMiddleware(isAuth)
   async updatePost(
-    @Arg("id") id: number,
-    @Arg("title", { nullable: true }) title: string
+    @Arg("id", () => Int) id: number,
+    @Arg("title", { nullable: true }) title: string,
+    @Arg("text", { nullable: true }) text: string,
+    @Ctx() { req }: MyContext
   ): Promise<Post | null> {
     const post = await Post.findOne({ where: { id } });
     if (!post) {
       return null;
     }
-    if (typeof post.title !== "undefined") {
-      post.title = title;
-      // await em.persistAndFlush(post);
-      await Post.update({ id }, { title });
-    }
-    return post;
+    const result = await getConnection()
+      .createQueryBuilder()
+      .update(Post)
+      .set({ title, text })
+      .where('id = :id and "creatorId"=:creatorId', {
+        id,
+        creatorId: req.session.userId,
+      })
+      .returning("*")
+      .execute();
+    return result.raw[0];
   }
 
   @Mutation(() => Boolean)
@@ -168,11 +179,7 @@ export class PostResolver {
     @Arg("id", () => Int) id: number,
     @Ctx() { req }: MyContext
   ): Promise<Boolean> {
-    // You can only delete a post that you posted.
-
-    // TODO: Return if actually deleted.
-    // Done: Fix foreign key constraint.
-    Post.delete({ id, creatorId: req.session.userId });
-    return true;
+    const res = await Post.delete({ id, creatorId: req.session.userId });
+    return typeof res.affected === "number" && res.affected > 0;
   }
 }

@@ -21,8 +21,6 @@ import {
   VoteMutationVariables,
   VoteMutation,
   DeletePostMutation,
-  PostDocument,
-  PostsQuery,
 } from "../generated/graphql";
 import Router from "next/router";
 import { pipe, tap } from "wonka";
@@ -228,7 +226,7 @@ export const createUrqlClient = (ssrExchange?: any, ctx?: any) => {
   // console.log({ headers });
 
   return {
-    // problem: extremely slow network in firefox
+    // problem: extremely slow network in firefox with localhost
     url: "http://localhost:4000/graphql",
     fetchOptions: {
       credentials: "include" as const, // Include cookie

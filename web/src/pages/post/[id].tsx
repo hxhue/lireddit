@@ -1,17 +1,16 @@
 import { Box, Heading } from "@chakra-ui/react";
-import { NextPage } from "next";
-import { withUrqlClient } from "next-urql";
-import React from "react";
+import { useRouter } from "next/router";
 import Layout from "../../components/Layout";
 import { usePostQuery } from "../../generated/graphql";
-import createUrqlClient from "../../utils/createUrqlClient";
 
-// We must provide Post.getInitialProps().
-// Or id will be undefined.
-const Post: NextPage<{ id: number }> = ({ id }) => {
+// NextPage does not work well with SSR?
+const Post: React.FC<{}> = () => {
+  const router = useRouter();
+  const id = router.query.id
+
   const [{ data, fetching }] = usePostQuery({
     variables: {
-      id: id,
+      id: typeof id === 'string' ? parseInt(id) : -1,
     },
   });
 
@@ -47,10 +46,12 @@ const Post: NextPage<{ id: number }> = ({ id }) => {
   );
 };
 
-export default withUrqlClient(createUrqlClient, { ssr: true })(Post);
+export default Post;
 
-Post.getInitialProps = ({ query }) => {
-  return {
-    id: parseInt(query.id as string),
-  };
-};
+// For NextPage. But use router now instead.
+// Post.getInitialProps = ({ query }) => {
+//   return {
+//     // id: parseInt(query.id as string),
+//     id: query.id
+//   };
+// };

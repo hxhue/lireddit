@@ -1,4 +1,4 @@
-import { DeleteIcon } from "@chakra-ui/icons";
+import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
@@ -7,7 +7,7 @@ import {
   IconButton,
   Link,
   Stack,
-  Text
+  Text,
 } from "@chakra-ui/react";
 import NextLink from "next/link";
 import { useState } from "react";
@@ -15,7 +15,8 @@ import Layout from "../components/Layout";
 import UpdootSection from "../components/UpdootSection";
 import {
   useDeletePostMutation,
-  useMeQuery, usePostsQuery
+  useMeQuery,
+  usePostsQuery,
 } from "../generated/graphql";
 
 const FIRST_FETCH_LIMIT = 15;
@@ -53,26 +54,42 @@ const Index = () => {
                     post={p}
                     myvote={meData?.me && p.myvote ? p.myvote : 0}
                   ></UpdootSection>
-                  <Box ml={8}>
+                  <Box ml={8} mt={2}>
                     <NextLink href="/post/[id]" as={`/post/${p.id}`}>
                       <Link>
                         <Heading fontSize="xl">{p.title}</Heading>
                       </Link>
                     </NextLink>
-                    posted by {p.creator.username}
+                    posted by {p.creator!.username}
                     <Text mt={4}>{p.textSnippet}</Text>
                   </Box>
                 </Flex>
-                <IconButton
-                  colorScheme={"red"}
-                  ml="auto"
-                  aria-label="Delete post"
-                  variant="ghost"
-                  icon={<DeleteIcon />}
-                  onClick={() => {
-                    deletePost({ id: p.id });
-                  }}
-                ></IconButton>
+                {meData?.me?.id === p.creatorId ? (
+                  <Box ml="auto">
+                    <NextLink href='post/edit/[id]' as={`post/edit/${p.id}`}>
+                    <IconButton
+                    as={Link}
+                      ml="auto"
+                      aria-label="Edit post"
+                      variant="ghost"
+                      icon={<EditIcon />}
+                      onClick={() => {
+                        // deletePost({ id: p.id });
+                      }}
+                    ></IconButton>
+                    </NextLink>
+                    <IconButton
+                      colorScheme={"red"}
+                      ml="auto"
+                      aria-label="Delete post"
+                      variant="ghost"
+                      icon={<DeleteIcon />}
+                      onClick={() => {
+                        deletePost({ id: p.id });
+                      }}
+                    ></IconButton>
+                  </Box>
+                ) : null}
               </Flex>
             );
           })}
