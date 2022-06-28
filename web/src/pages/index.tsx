@@ -1,23 +1,18 @@
-import { DeleteIcon, EditIcon } from "@chakra-ui/icons";
 import {
   Box,
   Button,
   Flex,
   Heading,
-  IconButton,
   Link,
   Stack,
   Text,
 } from "@chakra-ui/react";
 import NextLink from "next/link";
 import { useState } from "react";
+import EditDeletePostButtons from "../components/EditDeletePostButtons";
 import Layout from "../components/Layout";
 import UpdootSection from "../components/UpdootSection";
-import {
-  useDeletePostMutation,
-  useMeQuery,
-  usePostsQuery,
-} from "../generated/graphql";
+import { useMeQuery, usePostsQuery } from "../generated/graphql";
 
 const FIRST_FETCH_LIMIT = 15;
 const FOLLOWING_FETCH_LIMIT = 5;
@@ -33,8 +28,6 @@ const Index = () => {
   });
 
   const [{ data: meData }] = useMeQuery();
-
-  const [, deletePost] = useDeletePostMutation();
 
   return (
     <Layout>
@@ -65,30 +58,7 @@ const Index = () => {
                   </Box>
                 </Flex>
                 {meData?.me?.id === p.creatorId ? (
-                  <Box ml="auto">
-                    <NextLink href='post/edit/[id]' as={`post/edit/${p.id}`}>
-                    <IconButton
-                    as={Link}
-                      ml="auto"
-                      aria-label="Edit post"
-                      variant="ghost"
-                      icon={<EditIcon />}
-                      onClick={() => {
-                        // deletePost({ id: p.id });
-                      }}
-                    ></IconButton>
-                    </NextLink>
-                    <IconButton
-                      colorScheme={"red"}
-                      ml="auto"
-                      aria-label="Delete post"
-                      variant="ghost"
-                      icon={<DeleteIcon />}
-                      onClick={() => {
-                        deletePost({ id: p.id });
-                      }}
-                    ></IconButton>
-                  </Box>
+                  <EditDeletePostButtons postId={p.id} />
                 ) : null}
               </Flex>
             );
@@ -123,7 +93,6 @@ const Index = () => {
   );
 };
 
-// export default withUrqlClient(createUrqlClient, { ssr: true })(Index);
 export default Index;
 
 // Bug2022060201：Not working well with urql cache...

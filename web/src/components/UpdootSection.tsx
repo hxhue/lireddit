@@ -33,7 +33,7 @@ export const UpdootSection: React.FC<UpdootSectionProps> = ({
           setUpvoting(true);
           await vote({
             postId: post.id,
-            value: myvote <= 0 ? 1 : 0, // upvote / cancel upvote
+            value: myvote > 0 ? 0 : 1, // cancel upvote / upvote
           });
           setUpvoting(false);
         }}
@@ -50,7 +50,7 @@ export const UpdootSection: React.FC<UpdootSectionProps> = ({
           setDownvoting(true);
           await vote({
             postId: post.id,
-            value: myvote >= 0 ? -1 : 0,
+            value: myvote < 0 ? 0 : -1,
           });
           setDownvoting(false);
         }}

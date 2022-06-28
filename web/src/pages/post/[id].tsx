@@ -1,16 +1,14 @@
 import { Box, Heading } from "@chakra-ui/react";
-import { useRouter } from "next/router";
 import Layout from "../../components/Layout";
 import { usePostQuery } from "../../generated/graphql";
+import getPostIdFromUrl from "../../utils/getPostIdFromUrl";
 
 // NextPage does not work well with SSR?
 const Post: React.FC<{}> = () => {
-  const router = useRouter();
-  const id = router.query.id
-
+  const id = getPostIdFromUrl();
   const [{ data, fetching }] = usePostQuery({
     variables: {
-      id: typeof id === 'string' ? parseInt(id) : -1,
+      id,
     },
   });
 
@@ -41,7 +39,7 @@ const Post: React.FC<{}> = () => {
   return (
     <Layout>
       <Heading mb={4}>{data.post.title}</Heading>
-      {data.post.title}
+      {data.post.text}
     </Layout>
   );
 };

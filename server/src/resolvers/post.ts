@@ -82,37 +82,33 @@ export class PostResolver {
   @Query(() => PaginatedPosts)
   async posts(
     @Arg("limit", () => Int) limit: number,
-    // cursor: better than offset
+    // cursor: Better than offset. Creation time of a post.
     @Arg("cursor", () => String, { nullable: true }) cursor: string,
-    @Ctx() { req }: MyContext
+    @Ctx() { }: MyContext
   ): Promise<PaginatedPosts> {
     const realLimit = Math.min(50, limit);
 
-    // May be null or undefined
-    const userId = req.session.userId;
-
-    // Raw SQL
-    // Left join can be changed into a subquery:
-    // -- (select value from updoot where "userId"=1 and "postId"=p.id) as myvote
-    // Then there will always be a `myvote` column in result.
+    // CAN BE SIMPLIFIED BY FieldResolver AND dataloader.
+    // const userId = req.session.userId;
+    // const posts: Post[] = await getConnection().query(
+    //   `
+    //   select p.*
+    //     ${userId ? ", updoot.value as myvote" : ""}
+    //   from post p
+    //   ${
+    //     userId
+    //       ? `left join updoot on updoot."userId" = ${userId} and updoot."postId" = p.id`
+    //       : ""
+    //   }
+    //   where p."createdAt" < $1
+    //   order by p."createdAt" desc
+    //   limit ${realLimit + 1}
+    // `,
+    //   [cursor ? new Date(parseInt(cursor)) : new Date()]
+    // );
     const posts: Post[] = await getConnection().query(
       `
-      select p.*, 
-        json_build_object(
-          'id',        u.id,
-          'username',  u.username,
-          'email',     u.email,
-          'createdAt', u."createdAt",
-          'updatedAt', u."updatedAt"
-        ) creator 
-        ${userId ? ", updoot.value as myvote" : ""}
-      from post p 
-      inner join public.user u on u.id = p."creatorId"
-      ${
-        userId
-          ? `left join updoot on updoot."userId" = ${userId} and updoot."postId" = p.id`
-          : ""
-      }
+      select p.* from post p
       where p."createdAt" < $1
       order by p."createdAt" desc
       limit ${realLimit + 1}
@@ -127,16 +123,35 @@ export class PostResolver {
   }
 
   @FieldResolver(() => String)
-  textSnippet(@Root() root: Post) {
-    const SLICE_LIMIT = 50;
-    return root.text.length > SLICE_LIMIT
-      ? root.text.slice(0, SLICE_LIMIT) + "..."
-      : root.text;
+  textSnippet(@Root() post: Post) {
+    const SLICE_LIMIT = 90;
+    return post.text.length > SLICE_LIMIT
+      ? post.text.slice(0, SLICE_LIMIT) + "..."
+      : post.text;
+  }
+
+  @FieldResolver(() => String)
+  creator(@Root() post: Post, @Ctx() { userLoader }: MyContext) {
+    return userLoader.load(post.creatorId);
+  }
+
+  @FieldResolver(() => Int, { nullable: true })
+  async myvote(@Root() post: Post, @Ctx() { updootLoader, req }: MyContext) {
+    if (!req.session.userId) {
+      return null;
+    }
+    const updoot = await updootLoader.load({
+      postId: post.id,
+      userId: req.session.userId,
+    });
+    return updoot ? updoot.value : null;
   }
 
   @Query(() => Post, { nullable: true })
   post(@Arg("id", () => Int) id: number): Promise<Post | null> {
-    return Post.findOne({ where: { id }, relations: ["creator"] });
+    // Now `creator` is resolved by FieldResolver
+    // return Post.findOne({ where: { id }, relations: ["creator"] });
+    return Post.findOne({ where: { id } });
   }
 
   @Mutation(() => Post, { nullable: true })

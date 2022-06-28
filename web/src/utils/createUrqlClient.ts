@@ -43,7 +43,7 @@ const errorExchange: Exchange =
   };
 
 const cursorPagination = (): Resolver => {
-  return (_parent, fieldArgs, cache, info) => {
+  return (parent, fieldArgs, cache, info) => {
     const { parentKey: entityKey, fieldName } = info;
     const allFields = cache.inspectFields(entityKey);
     // According to our setting, entityKey === 'Query' and fieldName === 'posts'
@@ -51,13 +51,21 @@ const cursorPagination = (): Resolver => {
     if (fieldInfo.length == 0) {
       return undefined;
     }
-    const fieldKey = `${fieldName}(${stringifyVariables(fieldArgs)})`;
-    const inCache = cache.resolveFieldByKey(entityKey, fieldKey);
+    
     // Since "Load more" function will pass an earlier different cursor every time,
     // fieldKey will change and cache does not have the data.
-    info.partial = !inCache;
+    
+    // const fieldKey = `${fieldName}(${stringifyVariables(fieldArgs)})`;
+    // const inCache = cache.resolveFieldByKey(entityKey, fieldKey);
+    // info.partial = !inCache;
+
+    // FIXED: if info.partial is set to false, some properties will be missing from posts[].
+    // FUCK URQL.
+    info.partial = true;
+
     const results = [];
-    // Combine new data with previous data.
+    // Combine all data. Since cache is already updated by fetching parent, we only need to
+    // fetch all old data. The new data is actually inside it.
     let hasMore = true;
     for (const fi of fieldInfo) {
       const key = cache.resolveFieldByKey(entityKey, fi.fieldKey) as string;
@@ -67,11 +75,16 @@ const cursorPagination = (): Resolver => {
       }
       results.push(...data);
     }
+
+    // console.log('cursorPagination.results:', results)
+
     return {
       __typename: "PaginatedPosts",
       hasMore,
       posts: results,
     };
+
+    // return parent ? parent.posts : undefined;
   };
 };
 

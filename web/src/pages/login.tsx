@@ -71,6 +71,4 @@ const Login: React.FC<{}> = ({}) => {
   );
 };
 
-// `export default` is required by .tsx
-// export default withUrqlClient(createUrqlClient, { ssr: true })(Login);
 export default Login;
